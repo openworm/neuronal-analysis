@@ -29,7 +29,9 @@ The OpenWorm project has been following a bottom-up approach to modeling the ner
 
 ![c302 structure](https://raw.githubusercontent.com/openworm/CElegansNeuroML/master/CElegans/pythonScripts/c302/images/c302.png)
 
-Using the [LibNeuroML library](https://github.com/NeuralEnsemble/libNeuroML), combined with information about the name and connectivity of c. elegans neurons, we have built up a data structure that represents the nervous system of th ec. elegans, with details like the kinds of synapses, neurotransmitters, gap junction relationships it may have.  Then we can run the network as a simulation and see how the membrane potential might change over time.
+Using the [LibNeuroML library](https://github.com/NeuralEnsemble/libNeuroML), combined with information about the name and connectivity of c. elegans neurons, we have built up a data structure that represents the nervous system of th ec. elegans, with details like the kinds of synapses, neurotransmitters, gap junction relationships it may have.  Specifically, you can see how this is built in [this script](https://github.com/openworm/CElegansNeuroML/blob/322c3da0840a27308c1f7203d87872a2c04437b0/CElegans/pythonScripts/RegenerateConnectome.py) and [this script](https://github.com/openworm/CElegansNeuroML/blob/322c3da0840a27308c1f7203d87872a2c04437b0/CElegans/pythonScripts/c302/parameters_C1.py). 
+
+Then we can run the network as a simulation and see how the membrane potential might change over time.
 
 
 ![Simulation in jNeuroML](https://raw.githubusercontent.com/openworm/CElegansNeuroML/master/CElegans/pythonScripts/c302/images/LEMS.png)
