@@ -1,4 +1,6 @@
 # neuronal-analysis
+
+[![Join the chat at https://gitter.im/openworm/neuronal-analysis](https://badges.gitter.im/openworm/neuronal-analysis.svg)](https://gitter.im/openworm/neuronal-analysis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Tools to produce, analyse and compare both simulated and recorded neuronal datasets
 
 This repository is intended to capture the results of both performing analysis on the dynamics of c. elegans neurons that have been recorded, as well as analyzing the results of simulations of c. elegans neurons, and making the two comparable to each other.  While our current simulations of c. elegans neurons still leave out many important details and tuning, there is a lot to be learned from even making coarse grained comparisons between real dynamics and dynamics that can come from imprecise models.
