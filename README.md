@@ -8,7 +8,7 @@ This repository is intended to capture the results of both performing analysis o
 
 ## Analysis
 
-In a separate repo, [progress was reported](https://github.com/openworm/CElegansNeuroML/issues/56#issuecomment-193942933) by @lukeczapla and @theideasmith in reproducing analysis via python code on existing data sets recorded from real c. elegans neurons:
+In a [separate repo](github.com/theideasmith/network), [progress was reported](https://github.com/openworm/CElegansNeuroML/issues/56#issuecomment-193942933) by @lukeczapla and @theideasmith in reproducing analysis via python code on existing data sets recorded from real c. elegans neurons:
 
 **Sample fluorescence heatmap for 107 neurons**
 ![zimmer-scaled](https://cloud.githubusercontent.com/assets/6181116/13614157/1b8fc986-e53d-11e5-8ece-cb91fe4bce0c.jpg).
