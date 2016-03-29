@@ -49,4 +49,4 @@ It is critical that the work of improving the nervous system model use all appro
 
 # The future
 
-Next steps for this exciting endeavor will be described in the issues on this repo.  As we collect scripts and code that are relevant to putting these pieces together, we will incorporate them here and make sure the community can execute them.
+Next steps for this exciting endeavor will be described [in the issues on this repo](https://github.com/openworm/neuronal-analysis/issues).  As we collect scripts and code that are relevant to putting these pieces together, we will incorporate them here and make sure the community can execute them.
