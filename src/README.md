@@ -17,6 +17,16 @@ Components:
     - Annotating, labelling, sorting, classifying data
     - Saving data, using artificial filesystems to organize data
 
-- **Data Analysis**: this set of classes should expose methods for the range of commonly used procedures for neural data analysis. Preferably using a method-chaining interface, the library should be very modular. 
+- **Data Analysis**: this set of classes should expose methods for the range of commonly used procedures for neural data analysis. Preferably using a method-chaining interface, the library should be very modular.
+    - Tie together different analytical methods. 
 
 - **Data Comparison**: 
+    - Implement novel techniques for comparison of neural time series in relation to graph structure. 
+    - Harnessing **`Data Analysis`**, **`Data Comparison`** will provide an interface for conducting arbitrary statistical 
+      tests on data. 
+- **Graphing**: 
+    - The library should implement novel graphing capabilities
+    - Make it very easy to compare across arbitrary axes in a dataset.
+- **Experiment Management**: an interface for documenting an experiment in the code itself
+    - Underneath it would just be a dictionary building class. 
+    - Lots of potential use cases for this. 
