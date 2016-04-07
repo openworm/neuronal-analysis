@@ -79,7 +79,11 @@ class KatoData:
             fname:readfile(os.path.join(data_location,fname))
             for fname in os.listdir(data_location)}
         print [(f) for f,k in files.iteritems()] 
-        self.filedata = loadfiles(files)
+        self.wormData = loadfiles(files)
+
+    def random_dataset(self):
+        wd = self.wormData
+        return wd[wd.keys()[0]]
         
     
     
