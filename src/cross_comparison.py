@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import PyOpenWorm as pow
 
-import katodata
+from katodata import wormData
 
 class CompareBatch():
     """
@@ -17,7 +17,7 @@ class CompareBatch():
 class TimeSeriesComparator():
     """Implementing functionality to compare two time series"""
     def __init__(seriesA, seriesB):
-        
+
 
 wd = katodata.KatoData()
 
@@ -32,7 +32,7 @@ components = sklearn_pca.components_
 
 c302_loc = "."
 
-# we are calculating 
+# we are calculating
 def crosscorrelate(value):
   return np.dot(value.T, value)
 
@@ -50,7 +50,7 @@ c302_time = c302[:,0]
 data = np.delete(c302, 0, 1)
 c302_neurons = tf.c302_list(c302_loc + "/LEMS_c302_C_Full.xml")
 
-#indexes_map =  
+#indexes_map =
 wd_neurons = set([ n[0] for n in wd['NeuronIds'] if n!=None])
 
 

@@ -81,11 +81,10 @@ def load(path):
 filenames = os.listdir(data_location)
 manager = dm.BioDataManager()
 
-manager.new_dataset(
+dataset = manager.new_dataset(
     "The Kato Dataset",
     data_location,
     load,
     annotation='Created 2016: Just another set of 5 worms',
     tags=['katodata'])
-
-data = manager.retrieve('The Kato Dataset')
+wormData = dataset.retrieve("The Kato Dataset")
