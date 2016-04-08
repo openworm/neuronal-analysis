@@ -1,6 +1,12 @@
+import warnings
+import os
+import types
+
 def load(configfile):
+    # check if file exists
     # check if it will fit in memory?
     # x <- read(file)
+    # Throw that error
     # return x
     raise NotImplementedError
 
@@ -30,21 +36,64 @@ class BioDataManager():
             loaderfunc.
 
     """
-
-    def __init__(self.configfile):
-        # @private
-        self.config = load(configfile)
-
-        # self.loaded_datasets = ?
-
+    def __init__(self):
+        self.__dataset_metadata={}
+        self.__tags = set()
+        self.__datasets_in_memory={}
     def information():
         """
         Provides an overview of datasets, dates created, annotations, etc.
         """
         raise NotImplementedError
 
+    def new_dataset(self
+        , name
+        , location
+        , loader
+        , annotation='No annotation given'
+        , tags=[]):
 
-    def load_dataset(dataset, loader):
+        """
+        Makes BioDataManager aware of this dataset.
+        Won't throw an error if the file for the dataset doesn't exist.
+        """
+
+        if(self.__dataset_exists(name)):
+            warnings.warn('Cannot add existing dataset', RuntimeWarning)
+            return
+
+        assert hasattr(loader, '__call__')
+        assert isinstance(name, types.StringType)
+        assert isinstance(location, types.StringType)
+        assert isinstance(annotation, types.StringType)
+        assert isinstance(tags, types.ListType)
+
+        tagset = set(tags)
+
+        metadata = {
+            'name': name,
+            'annotation': annotation,
+            'tags': tagset,
+            'location': location,
+            'loaderfunction': loader
+        }
+        self.__dataset_metadata[name] = metadata
+        self.__tags.update(tagset)
+
+    def metadata(self, dataset):
+        """
+        Returns metadata for "dataset"
+        """
+        self.__assert_dset(dataset)
+        # assert metadata in self.__dataset_metadata[dataset]
+        return dict(self.__dataset_metadata[dataset])
+
+    def retrieve(self, dataset):
+        """ Returns the dataset in memory """
+        load_dataset(dataset)
+        return self.__datasets_in_memory(dataset)
+
+    def __load_dataset(self, dataset, forcereload=False):
         """
         1. check if "dataset" belongs in config
           if it doesn't, crash and ask the user to setup
@@ -61,21 +110,34 @@ class BioDataManager():
             - Add that datastructure to self.datasets
         """
 
-        raise NotImplementedError
 
-    def metadata(dataset):
-        """
-        Returns metadata for "dataset"
-        """
-        raise NotImplementedError
+        # Confirming the dataset does in fact exist
+        self.assert_dset(dataset)
 
+        # Confirming the file for the dataset exists
+        dataset_path = self.metadata(dataset,'location')
+        if not os.path.exists(dataset_path):
+            raise(OSError, 'File for dataset {0} does not exist'.format(dataset))
 
-    def annotate(dataset, annotation):
-        """
-        Adds to a list of annotations for "dataset"
-        """
-        raise NotImplementedError
+        loaderfunc = self.metadata(dataset, 'loaderfunction')
 
-    def tag(dataset, tag):
-        """ Tag a data for easy grouping """
-        raise NotImplementedError
+        # Don't do anything if we've already loaded this dataset
+        if forcereload == False and dataset in self.__datasets_in_memory:
+            return
+
+        with open(dataset_path) as file:
+            loaded_file = loaderfunc(file)
+            self.__datasets_in_memory[dataset] = loaded_file
+
+        return
+
+    def __nonexistent_datasets(self, ):
+        """ Returns a list of datasets whos files do not exist """
+
+    def __dataset_exists(self, dataset):
+        return dataset in self.__dataset_metadata
+
+    def __assert_dset(self, dataset, warning='Requested dataset does not exist'):
+        exists = self.__dataset_exists(dataset)
+        if not exists:
+            raise(IndexError, warning)
