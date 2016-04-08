@@ -2,6 +2,8 @@ import numpy as np
 import os
 import scipy.io as scio
 import pandas as pd
+import biodatamanager as dm
+
 currdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 data_location = os.path.join(currdir, 'data/wbdata/')
 print data_location
@@ -68,9 +70,22 @@ def loadfiles(files):
 
    return datasets
 
-def load():
+def load(path):
     files = {
         fname:readfile(os.path.join(data_location,fname))
-        for fname in os.listdir(data_location)
+        for fname in os.listdir(path)
     }
     return pd.DataFrame(loadfiles(files)).T
+
+
+filenames = os.listdir(data_location)
+manager = dm.BioDataManager()
+
+manager.new_dataset(
+    "The Kato Dataset",
+    data_location,
+    load,
+    annotation='Created 2016: Just another set of 5 worms',
+    tags=['katodata'])
+
+data = manager.retrieve('The Kato Dataset')

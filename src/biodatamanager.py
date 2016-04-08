@@ -40,11 +40,12 @@ class BioDataManager():
         self.__dataset_metadata={}
         self.__tags = set()
         self.__datasets_in_memory={}
-    def information():
+
+    def information(self):
         """
         Provides an overview of datasets, dates created, annotations, etc.
         """
-        raise NotImplementedError
+        return self.__dataset_metadata
 
     def new_dataset(self
         , name
@@ -63,7 +64,7 @@ class BioDataManager():
             return
 
         assert hasattr(loader, '__call__')
-        assert isinstance(name, types.StringType)
+        assert isinstance(name, types.StringType) or isinstance(name, types.IntType)
         assert isinstance(location, types.StringType)
         assert isinstance(annotation, types.StringType)
         assert isinstance(tags, types.ListType)
@@ -79,6 +80,7 @@ class BioDataManager():
         }
         self.__dataset_metadata[name] = metadata
         self.__tags.update(tagset)
+        return self
 
     def metadata(self, dataset):
         """
@@ -90,8 +92,8 @@ class BioDataManager():
 
     def retrieve(self, dataset):
         """ Returns the dataset in memory """
-        load_dataset(dataset)
-        return self.__datasets_in_memory(dataset)
+        self.__load_dataset(dataset)
+        return self.__datasets_in_memory[dataset]
 
     def __load_dataset(self, dataset, forcereload=False):
         """
@@ -112,22 +114,22 @@ class BioDataManager():
 
 
         # Confirming the dataset does in fact exist
-        self.assert_dset(dataset)
+        self.__assert_dset(dataset)
 
         # Confirming the file for the dataset exists
-        dataset_path = self.metadata(dataset,'location')
+        # If no path exists, assume dataset cannot be
+        dataset_path = self.__dataset_metadata[dataset]['location']
         if not os.path.exists(dataset_path):
             raise(OSError, 'File for dataset {0} does not exist'.format(dataset))
 
-        loaderfunc = self.metadata(dataset, 'loaderfunction')
+        loaderfunc = self.__dataset_metadata[dataset]['loaderfunction']
 
         # Don't do anything if we've already loaded this dataset
         if forcereload == False and dataset in self.__datasets_in_memory:
             return
 
-        with open(dataset_path) as file:
-            loaded_file = loaderfunc(file)
-            self.__datasets_in_memory[dataset] = loaded_file
+
+        self.__datasets_in_memory[dataset] = loaderfunc(dataset_path)
 
         return
 
