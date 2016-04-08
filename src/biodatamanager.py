@@ -10,6 +10,69 @@ def load(configfile):
     # return x
     raise NotImplementedError
 
+
+class BioDataset():
+    """
+    This is an abstract class for implementing
+    """
+    def __init__(
+      self
+    ,  readfunc=None
+    , writefunc=None
+    , name ='Anonymous Dataset'
+    , filepath=None
+    , dataset=None
+    , annotation='No annotation given'
+    , tags=[]
+    , autoload=False):
+
+        self.__cache = dataset
+        self.__reader = readfunc
+        self.__writer = writefunc
+        
+        self.filepath = filepath
+        self.tags = set(tags)
+        self.annotation = annotation
+        self.name = name
+
+        if autoload == True: 
+           self.retrieve()
+        
+    
+    def retrieve(self):
+        assert hasattr(self.__reader, '__call__') 
+        
+        """ Retrieve the dataset. 
+        If it's already in memory, nothing happens. 
+        If it is not in memory, it will be loaded into memory
+        """
+        if self.__cache != None: return self.__cache
+        
+        dataset_path = self.filepath
+        if not os.path.exists(dataset_path):
+            raise(OSError, 'File for dataset {0} does not exist'.format(dataset))
+
+        self.__cache = self.__reader(self.filepath)
+        return self
+
+    def write(self):
+        assert hasattr(self.__writer)
+        # We can't write if the dataset hasn't been loaded
+        if self.__cache == None: return
+
+        self.__writer(self.__cache)
+        return self
+
+    def flush(self):
+        # Flushes the cache. Maybe the file has changed
+        # and we need to reload
+        self.__cache = None
+        return self
+
+    def data(self):
+        # Allow user to retrieve the cache
+        return self.__cache
+
 class BioDataManager():
     """
     (Inspired by BioParameter from c302)
@@ -37,107 +100,28 @@ class BioDataManager():
 
     """
     def __init__(self):
-        self.__dataset_metadata={}
-        self.__tags = set()
-        self.__datasets_in_memory={}
+        self.datasets = {}
+        self.tags = set()
 
-    def information(self):
-        """
-        Provides an overview of datasets, dates created, annotations, etc.
-        """
-        return self.__dataset_metadata
+    def new(self, biodataset):
 
-    def new_dataset(self
-        , name
-        , location
-        , loader
-        , annotation='No annotation given'
-        , tags=[]):
+        assert isinstance(biodataset, BioDataset)   
 
         """
         Makes BioDataManager aware of this dataset.
         Won't throw an error if the file for the dataset doesn't exist.
         """
 
-        if(self.__dataset_exists(name)):
+        if(self.__dataset_exists(biodataset.name)):
             warnings.warn('Cannot add existing dataset', RuntimeWarning)
             return
-
-        assert hasattr(loader, '__call__')
-        assert isinstance(name, types.StringType) or isinstance(name, types.IntType)
-        assert isinstance(location, types.StringType)
-        assert isinstance(annotation, types.StringType)
-        assert isinstance(tags, types.ListType)
-
-        tagset = set(tags)
-
-        metadata = {
-            'name': name,
-            'annotation': annotation,
-            'tags': tagset,
-            'location': location,
-            'loaderfunction': loader
-        }
-        self.__dataset_metadata[name] = metadata
-        self.__tags.update(tagset)
+        
+        self.datasets[biodataset.name] = biodataset
+        self.tags.update(biodataset.tags)
         return self
 
-    def metadata(self, dataset):
-        """
-        Returns metadata for "dataset"
-        """
-        self.__assert_dset(dataset)
-        # assert metadata in self.__dataset_metadata[dataset]
-        return dict(self.__dataset_metadata[dataset])
-
-    def retrieve(self, dataset):
-        """ Returns the dataset in memory """
-        self.__load_dataset(dataset)
-        return self.__datasets_in_memory[dataset]
-
-    def __load_dataset(self, dataset, forcereload=False):
-        """
-        1. check if "dataset" belongs in config
-          if it doesn't, crash and ask the user to setup
-          their config first
-        2. check if the dataset file exists
-          if it doesn't, report this to the user.
-          Alternatively it would be cool to implement some Make like
-          facility for scientists. Where you can define dependencies among
-          scripts and let the code run them for you.
-        3. If the dataset is in config, then:
-            - Load the dataset into memory
-            - Use the loader function to turn it into
-              a data structure.
-            - Add that datastructure to self.datasets
-        """
-
-
-        # Confirming the dataset does in fact exist
-        self.__assert_dset(dataset)
-
-        # Confirming the file for the dataset exists
-        # If no path exists, assume dataset cannot be
-        dataset_path = self.__dataset_metadata[dataset]['location']
-        if not os.path.exists(dataset_path):
-            raise(OSError, 'File for dataset {0} does not exist'.format(dataset))
-
-        loaderfunc = self.__dataset_metadata[dataset]['loaderfunction']
-
-        # Don't do anything if we've already loaded this dataset
-        if forcereload == False and dataset in self.__datasets_in_memory:
-            return
-
-
-        self.__datasets_in_memory[dataset] = loaderfunc(dataset_path)
-
-        return
-
-    def __nonexistent_datasets(self, ):
-        """ Returns a list of datasets whos files do not exist """
-
     def __dataset_exists(self, dataset):
-        return dataset in self.__dataset_metadata
+        return dataset in self.datasets
 
     def __assert_dset(self, dataset, warning='Requested dataset does not exist'):
         exists = self.__dataset_exists(dataset)

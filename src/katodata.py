@@ -15,7 +15,9 @@ def extract_nids_list(wormdata):
     for x in nids:
         for j in x:
             neuron_array = j[0]
-            neurons = [ extract for n in neuron_array for extract in n if extract !='-'*3]
+            neurons = [ extract
+                for n in neuron_array 
+                for extract in n if extract !='-'*3]
             total.append(neurons)
 
     return total
@@ -79,12 +81,3 @@ def load(path):
 
 
 filenames = os.listdir(data_location)
-manager = dm.BioDataManager()
-
-dataset = manager.new_dataset(
-    "The Kato Dataset",
-    data_location,
-    load,
-    annotation='Created 2016: Just another set of 5 worms',
-    tags=['katodata'])
-wormData = dataset.retrieve("The Kato Dataset")
