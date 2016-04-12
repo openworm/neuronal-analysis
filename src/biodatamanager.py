@@ -1,6 +1,7 @@
 import warnings
 import os
 import types
+import weakref
 
 def load(configfile):
     # check if file exists
@@ -11,33 +12,56 @@ def load(configfile):
     raise NotImplementedError
 
 
+
 class BioDataset():
     """
     This is an abstract class for implementing
     """
     def __init__(
       self
-    ,  readfunc=None
+    , readfunc=None
     , writefunc=None
-    , name ='Anonymous Dataset'
-    , filepath=None
+    , filepath=''
+    , genfunc=None
+    , name = None
     , dataset=None
     , annotation='No annotation given'
     , tags=[]
-    , autoload=False):
+    , autoload=False
+    , dependencies=[]
+    , manager = None):
+        """
+        Creates a BioDataset instance 
+        I want this to eventually become a make-like utility
+        for scientific data-management. 
 
+        To do that, we'll need a dependency resolver.
+        Dependency resolver: 
+        http://www.electricmonk.nl/log/2008/08/07/dependency-resolving-algorithm/
+        """
+        
+        if not name:
+            raise(TypeError, 'Cannot create anonymous dataset')
+        
         self.__cache = dataset
+        
+        # We should really do dependency
         self.__reader = readfunc
         self.__writer = writefunc
-        
+        self.__generator = genfunc
+       
         self.filepath = filepath
         self.tags = set(tags)
         self.annotation = annotation
         self.name = name
-
+        self.dependencies = dependencies
         if autoload == True: 
            self.retrieve()
-        
+
+
+        if isinstance(manager,BioDataManager):
+            manager.new(self)
+            self.__manager = weakref.ref(manager) 
     
     def retrieve(self):
         assert hasattr(self.__reader, '__call__') 
@@ -49,19 +73,32 @@ class BioDataset():
         if self.__cache != None: return self.__cache
         
         dataset_path = self.filepath
-        if not os.path.exists(dataset_path):
-            raise(OSError, 'File for dataset {0} does not exist'.format(dataset))
-
-        self.__cache = self.__reader(self.filepath)
-        return self
+        path_exists = os.path.exists(dataset_path)
+        # If the file doesn't exist and we have 
+        # no generator, then quit 
+        if not path_exists and self.genfunc==None:
+            raise(OSError, 'No file or path to retrieve {0}'.format(dataset))
+        # If file doesn't exist and we do have a generator
+        # then generate
+        elif not path_exists and self.genfunc!=None:
+            cache = self.genfunc()
+            self.__cache = cache
+        # If file does exist, then generate it
+        else:
+            self.__cache = self.__reader(self.filepath)
+        return  self.__cache
 
     def write(self):
+
+        """
+        Writes the dataset if it is in the cache 
+        and a writefunc was supplied
+        """
         assert hasattr(self.__writer)
         # We can't write if the dataset hasn't been loaded
         if self.__cache == None: return
 
-        self.__writer(self.__cache)
-        return self
+        self.__writer(self.filepath,self.__cache)
 
     def flush(self):
         # Flushes the cache. Maybe the file has changed
@@ -72,6 +109,9 @@ class BioDataset():
     def data(self):
         # Allow user to retrieve the cache
         return self.__cache
+
+    def loaded(self):
+        return self.__cache != None
 
 class BioDataManager():
     """
@@ -120,6 +160,13 @@ class BioDataManager():
         self.tags.update(biodataset.tags)
         return self
 
+    def request(dataset):
+        if not  __dataset_exists(dataset): 
+            raise(IndexError, 'Dataset {0} doesn\'t exist'.format(dataset))     
+    
+        return self.datasets[dataset]
+    
+    
     def __dataset_exists(self, dataset):
         return dataset in self.datasets
 

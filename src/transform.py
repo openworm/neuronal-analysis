@@ -8,47 +8,10 @@ from sklearn.preprocessing import StandardScaler
 
 import numpy as np
 
-MAT_EXTENSION = '.mat'
-
-def extract_nids_list(wormdata):
-    nids = wormdata['NeuronIds'].transpose()
-    total = []
-    for x in nids:
-        for j in x:
-            for y in j:
-                d = []
-                if len(y)==0: total.append(None)
-                else:
-                    for n in y:
-                        listed = n.tolist()
-                        if len(listed)>0: d.append(listed[0] )
-                    total.append(d)
-    # I'm too lazy to figure out why
-    # the lists come out with neuronids
-    # nested, so I'm just going to
-    # flatten it and hope the interpreter
-    # will optimize for me
-    
-    return total
-
-def extract_matfile(fname):
-    try:
-        matfile = scio.loadmat(fname)
-    except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
-        raise
-    data=matfile['wbData'][0][0]
-
-    keyed_data = { data.dtype.names[i]: data[i] for i in range(len(data.dtype.names))}
-    keyed_data['NeuronIds']  = extract_nids_list(keyed_data)
-    return keyed_data
-
-def loadfiles(files):
-    datasets = { file: extract_matfile('wbdata/'+ file) for file in files if os.path.splitext(file)[1] == MAT_EXTENSION}
-    return datasets
-
 def graph_worm_overview(wormdata):
-
+    """
+    Wormdata as a dictionary
+    """
 
     fields = ['deltaFOverF_deriv',
               'deltaFOverF_bc',
@@ -66,17 +29,17 @@ def graph_worm_overview(wormdata):
 
     deriv_ax = fig.add_subplot(gs[0,0])
     deriv_ax.set_title("Fluorescence Derivative")
-    deriv_ax.pcolor(wormdata['deltaFOverF_deriv'].T)
+    deriv_ax.pcolormesh(wormdata['deltaFOverF_deriv'].T)
     deriv_ax.axis('tight')
 
     bc_ax = fig.add_subplot(gs[1,0])
     bc_ax.set_title("Fluorescence Bleach Cancelled")
-    bc_ax.pcolor(wormdata['deltaFOverF_bc'].T)
+    bc_ax.pcolormesh(wormdata['deltaFOverF_bc'].T)
     bc_ax.axis('tight')
 
     f_over_f = fig.add_subplot(gs[2,0])
     f_over_f.set_title("Fluorescence Raw")
-    f_over_f.pcolor(wormdata['deltaFOverF'].T)
+    f_over_f.pcolormesh(wormdata['deltaFOverF'].T)
     f_over_f.axis('tight')
 
     fig.tight_layout()
@@ -87,10 +50,6 @@ def draw_worm_overview_graphs(data):
     for flnm,worm in data.iteritems():
         file = os.path.splitext(flnm)[0] + '.png'
         graph_worm_overview(worm).savefig(file, bbox_inches="tight")
-
-wormData = loadfiles(os.listdir('./wbdata'))
-wd = loadfiles(os.listdir('./wbdata'))
-
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
