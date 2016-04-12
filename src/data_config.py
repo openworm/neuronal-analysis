@@ -12,7 +12,7 @@ kato =  dm.BioDataset(
     autoload=True,
     readfunc=kd.load)
 manager.new(kato)
-print manager.datasets
+
 
 
 
