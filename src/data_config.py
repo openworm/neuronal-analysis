@@ -4,7 +4,7 @@ import katodata as kd
 import os
 manager = dm.BioDataManager()
 
-katomat =  dm.BioDataset(
+kato=  dm.BioDataset(
     name="The Kato Matlab  Dataset",
     filepath=kd.data_location,
     annotation='Created 2016: Just another set of 5 worms',
