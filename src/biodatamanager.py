@@ -70,18 +70,18 @@ class BioDataset():
         If it's already in memory, nothing happens. 
         If it is not in memory, it will be loaded into memory
         """
-        if self.__cache != None: return self.__cache
+        if not self.__cache is None: return self.__cache
         
         dataset_path = self.filepath
         path_exists = os.path.exists(dataset_path)
         # If the file doesn't exist and we have 
         # no generator, then quit 
-        if not path_exists and self.genfunc==None:
-            raise(OSError, 'No file or path to retrieve {0}'.format(dataset))
+        if not path_exists and self.__generator==None:
+            raise(OSError, 'No file or path to retrieve {0}'.format(dataset_path))
         # If file doesn't exist and we do have a generator
         # then generate
-        elif not path_exists and self.genfunc!=None:
-            cache = self.genfunc()
+        elif not path_exists and self.__generator!=None:
+            cache = self.__generator()
             self.__cache = cache
         # If file does exist, then generate it
         else:
