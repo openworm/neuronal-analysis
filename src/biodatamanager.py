@@ -111,7 +111,7 @@ class BioDataset():
         return self.__cache
 
     def loaded(self):
-        return self.__cache != None
+        return  not self.__cache is None
 
 class BioDataManager():
     """

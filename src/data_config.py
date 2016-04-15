@@ -10,7 +10,6 @@ kato_matlab =  dm.BioDataset(
     filepath=kd.data_location,
     annotation='Deprecated. Use Kato Dataset instead',
     tags=['katodata'],
-    autoload=True,
     readfunc=kd.load,
     manager = manager)
 

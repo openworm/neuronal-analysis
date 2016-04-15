@@ -28,7 +28,6 @@ class TimeSeries:
     """
     def __init__(self,timeseries,nnames=None,descriptor=None): 
         """Initializer"""
-
         self.description = descriptor if descriptor else 'No description provided'
         self.timeseries = timeseries
         self.nnames = nnames if nnames else [None 
