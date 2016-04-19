@@ -20,4 +20,5 @@ kato = dm.BioDataset(
     readfunc=pd.read_pickle,
     writefunc=lambda flnm, data: data.to_pickle(flnm),
     annotation='Straight from the heads of five worms to your table',
-    manager=manager)
+    manager=manager,
+    autoload=True)

@@ -5,19 +5,80 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import PyOpenWorm as pow
 
-from katodata import wormData
+from itertools import combinations
+import timeseries 
 
-class CompareBatch():
+
+class NeuronTimeSeriesIntegrator():
     """
-    For organizing an arbitrary number of time series for comparison
-    This will become useful for comparing multiple C302 runs, as well
-    as comparing the five kato datasets
+    For integrating multiple time series and running
+    cross-series analysis
     """
+    def __init__(self,series):
 
-class TimeSeriesComparator():
-    """Implementing functionality to compare two time series"""
-    def __init__(seriesA, seriesB):
+        # Typechecking
+        for ts in series:
+            if not ts.__module__ == timeseries.__name__:
+                raise(TypeError, 'Must use timeseries object for NeuronTimeSeriesComparator')
+        self.series = series
+        self.size = len(self.series) 
+        self.neurons = [
+            ts.nnames
+            for ts in self.series]
+        self.neuronmemberships = [ set(filter(lambda x: x!=None, series[i].nnames)) for i in range(5) ]
+ 
+        self.global_neurons = self.global_shared()
+        self.local_neurons = self.local_shared()
+        
+        groupings  = [ i for i in combinations(range(self.size), r=2)].extend(range(self.size))    
+        self.neuron_pairings = groupings
+        
 
+    def global_shared(self):
+        return sorted(set.intersection(*self.neuronmemberships))
+
+    def local_shared(self):
+        n = self.size
+        similars = {
+            (i,j): set.intersection(set(self.neurons[i]), set(self.neurons[j]))
+            for j in range(n)
+            for i in range(n)
+        }
+        return similars
+    
+    def datasintersect(self,i,j, global_ns=False):
+        inbounds = i < self.size and j < self.size
+
+        # TODO: check i and j are in bounds
+        neurons = self.global_neurons if global_ns else self.local_neurons[(i,j)]
+
+        indi = [self.series[i].nname_to_index[k] for k in neurons]
+        indj = [self.series[i].nname_to_index[k] for k in neurons]
+
+        mati = np.take(self.series[i], indi,axis=0)
+        matj = np.take(self.series[j], indj,axis=0) 
+        last = min(mati.shape[1], matj.shape[1])
+        
+        mati = mati[:,0:last]
+        matj = matj[:,0:last]
+
+        timeseriesi = NeuronTimeSeries(timeseries=mati, nnames=neurons)
+        timeseriesj = NeuronTimeSeries(timeseries=matj, nnames=neurons)
+        
+        return timeseriesi, timeseriesj
+
+import timeseries as ts
+import data_config as dc
+wd = dc.kato.data()
+deltas = [ts.NeuronTimeSeries(timeseries=wd[i]['deltaFOverF_deriv'], nnames=wd[i]['NeuronIds'][0]) for i in range(5)]
+
+print timeseries.__name__
+integrator = NeuronTimeSeriesIntegrator(deltas)
+
+
+
+
+"""    
 
 wd = katodata.KatoData()
 
@@ -80,3 +141,4 @@ def plot_c302_result():
 
 
 #plot_c302_result()
+"""
