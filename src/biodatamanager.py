@@ -56,14 +56,14 @@ class BioDataset():
         self.name = name
         self.dependencies = dependencies
         if autoload == True:
-           self.retrieve()
+           self.data()
 
 
         if isinstance(manager,BioDataManager):
             manager.new(self)
             self.__manager = weakref.ref(manager)
 
-    def retrieve(self):
+    def data(self):
         assert hasattr(self.__reader, '__call__')
 
         """ Retrieve the dataset.
@@ -105,10 +105,6 @@ class BioDataset():
         # and we need to reload
         self.__cache = None
         return self
-
-    def data(self):
-        # Allow user to retrieve the cache
-        return self.__cache
 
     def loaded(self):
         return  not self.__cache is None
