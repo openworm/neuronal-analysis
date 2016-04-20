@@ -16,7 +16,7 @@ kato_matlab =  dm.BioDataset(
 
 flnm = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'/data/katodata.pickle'
 kato = dm.BioDataset(
-    name="Kato",
+    name="Kato Pandas",
     filepath=flnm,
     readfunc=pd.read_pickle,
     writefunc=lambda flnm, data: data.to_pickle(flnm),
