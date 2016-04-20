@@ -31,51 +31,51 @@ class BioDataset():
     , dependencies=[]
     , manager = None):
         """
-        Creates a BioDataset instance 
+        Creates a BioDataset instance
         I want this to eventually become a make-like utility
-        for scientific data-management. 
+        for scientific data-management.
 
         To do that, we'll need a dependency resolver.
-        Dependency resolver: 
+        Dependency resolver:
         http://www.electricmonk.nl/log/2008/08/07/dependency-resolving-algorithm/
         """
-        
+
         if not name:
             raise(TypeError, 'Cannot create anonymous dataset')
-        
+
         self.__cache = dataset
-        
+
         # We should really do dependency
         self.__reader = readfunc
         self.__writer = writefunc
         self.__generator = genfunc
-       
+
         self.filepath = filepath
         self.tags = set(tags)
         self.annotation = annotation
         self.name = name
         self.dependencies = dependencies
-        if autoload == True: 
+        if autoload == True:
            self.retrieve()
 
 
         if isinstance(manager,BioDataManager):
             manager.new(self)
-            self.__manager = weakref.ref(manager) 
-    
+            self.__manager = weakref.ref(manager)
+
     def retrieve(self):
-        assert hasattr(self.__reader, '__call__') 
-        
-        """ Retrieve the dataset. 
-        If it's already in memory, nothing happens. 
+        assert hasattr(self.__reader, '__call__')
+
+        """ Retrieve the dataset.
+        If it's already in memory, nothing happens.
         If it is not in memory, it will be loaded into memory
         """
         if not self.__cache is None: return self.__cache
-        
+
         dataset_path = self.filepath
         path_exists = os.path.exists(dataset_path)
-        # If the file doesn't exist and we have 
-        # no generator, then quit 
+        # If the file doesn't exist and we have
+        # no generator, then quit
         if not path_exists and self.__generator==None:
             raise(OSError, 'No file or path to retrieve {0}'.format(dataset_path))
         # If file doesn't exist and we do have a generator
@@ -91,7 +91,7 @@ class BioDataset():
     def write(self):
 
         """
-        Writes the dataset if it is in the cache 
+        Writes the dataset if it is in the cache
         and a writefunc was supplied
         """
         assert hasattr(self.__writer)
@@ -142,10 +142,19 @@ class BioDataManager():
     def __init__(self):
         self.datasets = {}
         self.tags = set()
+    def __repr__(self):
+        keys = self.datasets.keys()
+        annotations = [ds.annotation for k, ds in self.datasets.iteritems()]
+
+        string = '::BioDataManager Instance::\n'
+
+        for i in range(len(keys)):
+            string += '{0}: {1}\n'.format(keys[i], annotations[i])
+        return string
 
     def new(self, biodataset):
 
-        assert isinstance(biodataset, BioDataset)   
+        assert isinstance(biodataset, BioDataset)
 
         """
         Makes BioDataManager aware of this dataset.
@@ -155,18 +164,18 @@ class BioDataManager():
         if(self.__dataset_exists(biodataset.name)):
             warnings.warn('Cannot add existing dataset', RuntimeWarning)
             return
-        
+
         self.datasets[biodataset.name] = biodataset
         self.tags.update(biodataset.tags)
         return self
 
     def request(dataset):
-        if not  __dataset_exists(dataset): 
-            raise(IndexError, 'Dataset {0} doesn\'t exist'.format(dataset))     
-    
+        if not  __dataset_exists(dataset):
+            raise(IndexError, 'Dataset {0} doesn\'t exist'.format(dataset))
+
         return self.datasets[dataset]
-    
-    
+
+
     def __dataset_exists(self, dataset):
         return dataset in self.datasets
 
