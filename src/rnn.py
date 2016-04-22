@@ -12,71 +12,142 @@ https://github.com/fchollet/keras/blob/master/examples/lstm_text_generation.py
 '''
 
 from keras.models import Sequential
+from keras.layers import Layer
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM
 from keras.utils.data_utils import get_file
+from keras.optimizers import RMSprop
+
 import numpy as np
 import random
 import sys
 import os
 
+import theano
+from theano import tensor as T, function, printing
+
 import biodatamanager as dm
 
 os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
 
-def generate(seq, maxlen=10, bs=128, ep=5, output_iterations=10):
-	# Cut the timeseries data (variable name 'seq') into semi-redundant sequence chunks of maxlen
+# Layer implementing a Gaussian mixture model
+# Implementation follows 
+# https://github.com/jrieke/lstm-biology/blob/master/prediction_stateful_mixture.ipynb
+# and
+# https://github.com/fchollet/keras/issues/1061
+# Thanks to @jrieke for providing code and guidance
 
-	X = []
-	y = []
+class GMMActivation(Layer):
+    """
+    GMM-like activation function.
+    Assumes that input has (D+2)*M dimensions, where D is the dimensionality of the 
+    target data. The first M*D features are treated as means, the next M features as 
+    standard devs and the last M features as mixture components of the GMM. 
+    """
+    def __init__(self, M, **kwargs):
+        super(GMMActivation, self).__init__(**kwargs)
+        self.M = M
 
-	for i in range(0, len(seq) - maxlen):
-	    X.append(seq[i:i+maxlen])
-	    y.append(seq[i+maxlen])
+    def get_output(self, train=False):
+        X = self.get_input(train)
+        D = T.shape(X)[1]/self.M - 2
+        # leave mu values as they are since they're unconstrained
+        # scale sigmas with exp, s.t. all values are non-negative 
+        X = T.set_subtensor(X[:,D*self.M:(D+1)*self.M], T.exp(X[:,D*self.M:(D+1)*self.M]))
+        # scale alphas with softmax, s.t. that all values are between [0,1] and sum up to 1
+        X = T.set_subtensor(X[:,(D+1)*self.M:(D+2)*self.M], T.nnet.softmax(X[:,(D+1)*self.M:(D+2)*self.M]))
+        return X
 
-	dim = len((X[0][0]))
+    def get_config(self):
+        config = {"name": self.__class__.__name__,
+                  "M": self.M}
+        base_config = super(GMMActivation, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
-	print("sequence chunks:", len(X))
-	print("chunk width:", len(X[0]))
-	print("vector dimension:", dim)
+def gmm_loss(y_true, y_pred):
+    """
+    GMM loss function.
+    Assumes that y_pred has (D+2)*M dimensions and y_true has D dimensions. The first 
+    M*D features are treated as means, the next M features as standard devs and the last 
+    M features as mixture components of the GMM. 
+    """
+    def loss(m, M, D, y_true, y_pred):
+        mu = y_pred[:,D*m:(m+1)*D]
+        sigma = y_pred[:,D*M+m]
+        alpha = y_pred[:,(D+1)*M+m]
 
-	X = np.array(X)
-	y = np.array(y)
-	
-	# build the model: 2 stacked LSTM
-	print('Build model...')
-	model = Sequential()
-	model.add(LSTM(512, return_sequences=True, input_shape=(maxlen, dim)))
-	model.add(Dropout(0.2))
-	model.add(LSTM(512, return_sequences=False))
-	model.add(Dropout(0.2))
-	model.add(Dense(dim))
-	model.add(Activation('softmax'))
+        return (alpha/sigma/np.sqrt(2. * np.pi)) * T.exp(-T.sum(T.sqr(mu-y_true),-1)/(2*sigma**2))
 
-	model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+    D = T.shape(y_true)[1]
+    M = T.shape(y_pred)[1]/(D+2)
+    seq = T.arange(M)
+    result, _ = theano.scan(fn=loss, outputs_info=None, 
+    sequences=seq, non_sequences=[M, D, y_true, y_pred])
+    return -T.log(result.sum(0))
 
-	# Train the model
-	model.fit(X, y, batch_size=bs, nb_epoch=ep)
+def generate(seq, maxlen=1, bs=3, ep=5, output_iterations=10, num_mixture_components=10):
+    # seq is a single sample, in the format (timesteps, features) !
+    # TODO: expand code to support multiple samples, fed into model together as a batch
+    # Cut the timeseries data (variable name 'seq') into semi-redundant sequence chunks of maxlen
 
-	# Generate timeseries
-	x_seed = X[len(X)-1] #choose final in-sample data point to initialize model
-	x_array = []
-	x_array.append(x_seed)
-	x = np.array(x_array)
+    X = []
+    y = []
 
-	generated = []
-	for i in range(output_iterations):
-	    pred = model.predict(x, verbose=0)[0].tolist()
+    for i in range(0, len(seq) - maxlen):
+        X.append(seq[i:i+maxlen])
+        y.append(seq[i+maxlen])
 
-	    #drop oldest data in x, and append predicted data for feedforward into model
-	    j = []
-	    x = []
-	    for i in range(1, len(x_seed)):    
-	        j.append(x_seed[i])
-	    j.append(pred)
-	    x = []
-	    x.append(j)
-	    x = np.array(x)
-	    generated.append(pred)
+    dim = len((X[0][0]))
 
-	return np.array(generated)
+    print("sequence chunks:", len(X))
+    print("chunk width:", len(X[0]))
+    print("vector dimension:", dim)
+    print("number of mixture components:", num_mixture_components)
+
+    X = np.array(X)
+    y = np.array(y)
+    
+    # build the model: 2 stacked LSTM
+    print('Build model...')
+    model = Sequential()
+    model.reset_states()
+    model.add(LSTM((dim+2) * num_mixture_components, return_sequences=False, input_shape=(maxlen, dim)))
+    model.add(Dense((dim+2) * num_mixture_components))
+    
+    model.add(GMMActivation(num_mixture_components))
+
+    model.compile(loss=gmm_loss, optimizer=RMSprop(lr=0.001))
+
+    # Train the model
+    model.fit(X, y, batch_size=bs, nb_epoch=ep)
+
+    # Generate timeseries
+    x_seed = X[len(X)-1] #choose final in-sample data point to initialize model
+    x_array = []
+    x_array.append(x_seed)
+    x = np.array(x_array)
+
+    predicted = []
+    for i in range(output_iterations):
+        pred_parameters = model.predict_on_batch(x)[0]
+
+        means = pred_parameters[:num_mixture_components * dim]
+        sds = pred_parameters[(num_mixture_components * dim):(num_mixture_components * (dim+1))]
+        weights = pred_parameters[(num_mixture_components * (dim + 1)):]
+
+        print(means)
+        print(sds)
+        print(weights)
+
+        means = means.reshape(num_mixture_components, dim)
+        sds = sds[:, np.newaxis]
+        weights = weights[:, np.newaxis]
+        
+        pred = weights * np.random.normal(means, sds)
+        pred = np.sum(pred, axis=0)
+        predicted.append(pred)
+
+    return predicted
+
+
+
