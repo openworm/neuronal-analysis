@@ -16,22 +16,58 @@ Such capabilities will be invaluable if we want to develop complex auto-experime
 software.
 
 """
-import timeseries as ts
 
+import sys
+import os
+import numpy as np
+
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D
+
+from tvregdiff import TVRegDiff
+import timeseries as ts
 
 class Analyzer(ts):
 
+    def tvd(self, iters=10, alpha=1e-1, diff=None): #iter specifies number of iterations, alpha specifies 'regularization parameter'
 
-    def cross_correlate(timeseriesA, timeseriesB):
-        if not timeseriesA.shape == timeseriesB.shape:
-            raise Error('Invalid matrix dimensions')
+    	deriv = []
+    	count = 0
 
-        if not timeseriesA.neurons == timeseriesB.neurons:
-            raise Error('Must be on the same neurons to correlate')
+    	for t, vector in enumerate(self.timeseries.T): #differentiate neuron-by-neuron
 
-        a = timeseriesA.timeseries
-        b = timeseriesB.timeseriesB
+    		u = TVRegDiff(vector, iters, alpha, dx=diff, plotflag=0, diagflag=0)
+    		deriv.append(u)
 
-        dot = np.dot(a,b.T)
+    		if count % 10 == 0:
+    			print("Completed:", count)
+    		count += 1
 
-        leaves = sch.leaves_list(sch.linkage(dot))
+    	return np.array(deriv).T
+
+    def timeseries_plot(self, ax):
+    	subplot = ax.pcolor(self.timeseries.T)
+    	return subplot
+
+    def pca_plot3d(self, ax):
+
+    	# Example:
+    	# a = Analyzer(wormData)
+    	# fig = plt.figure(figsize=(20,10))
+    	# ax = fig.add_subplot(1, 2, 1, projection='3d')
+    	# a.pca_plot3d(ax)
+    	# ax.set_title(("PCA results"))
+    	# plt.show()
+
+		pca = PCA(n_components=3)
+		pca.fit(self.timeseries)
+		out = pca.transform(self.timeseries)
+
+		col = (out.T[0] + out.T[1] + out.T[2])
+
+		cmhot = plt.get_cmap("jet")
+
+		subplot = ax.scatter(out.T[0], out.T[1], out.T[2], depthshade='False', c=col, cmap=cmhot, marker='o')
+
+		return subplot
