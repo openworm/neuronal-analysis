@@ -26,9 +26,9 @@ from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D
 
 from tvregdiff import TVRegDiff
-import timeseries as ts
+import neurontimeseries as nts
 
-class Analyzer(ts):
+class Analyzer(nts.NeuronTimeSeries):
 
     def tvd(self, iters=10, alpha=1e-1, diff=None): #iter specifies number of iterations, alpha specifies 'regularization parameter'
 

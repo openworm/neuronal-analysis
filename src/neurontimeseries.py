@@ -35,7 +35,6 @@ class NeuronTimeSeries:
     act WormData interface
     """
     def __init__(self,timeseries=None,nnames=None):
-        nnames = list(nnames)
         if not type(timeseries).__module__ == np.__name__ :
             raise TypeError('Must use numpy array for timeseries')
 
