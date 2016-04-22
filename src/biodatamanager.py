@@ -41,7 +41,7 @@ class BioDataset():
         """
 
         if not name:
-            raise(TypeError, 'Cannot create anonymous dataset')
+            raise TypeError('Cannot create anonymous dataset')
 
         self.__cache = dataset
 
@@ -77,7 +77,7 @@ class BioDataset():
         # If the file doesn't exist and we have
         # no generator, then quit
         if not path_exists and self.__generator==None:
-            raise(OSError, 'No file or path to retrieve {0}'.format(dataset_path))
+            raise OSError('No file or path to retrieve {0}'.format(dataset_path))
         # If file doesn't exist and we do have a generator
         # then generate
         elif not path_exists and self.__generator!=None:
@@ -167,7 +167,7 @@ class BioDataManager():
 
     def request(dataset):
         if not  __dataset_exists(dataset):
-            raise(IndexError, 'Dataset {0} doesn\'t exist'.format(dataset))
+            raise IndexError('Dataset {0} doesn\'t exist'.format(dataset))
 
         return self.datasets[dataset]
 
@@ -178,4 +178,4 @@ class BioDataManager():
     def __assert_dset(self, dataset, warning='Requested dataset does not exist'):
         exists = self.__dataset_exists(dataset)
         if not exists:
-            raise(IndexError, warning)
+            raise IndexError(warning)

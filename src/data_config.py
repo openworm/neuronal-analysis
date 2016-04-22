@@ -46,7 +46,7 @@ kato_matlab =  dm.BioDataset(
     readfunc=kd.load,
     manager = manager)
 
-kato_pandas = dm.BioDataset(
+kato = dm.BioDataset(
     name="Kato Pandas",
     filepath=projdir+'/data/katodata.pickle',
     readfunc=pd.read_pickle,
