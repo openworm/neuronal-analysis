@@ -1,4 +1,4 @@
-[![Join the chat at https://gitter.im/openworm/neuronal-analysis](https://badges.gitter.im/openworm/neuronal-analysis.svg)](https://gitter.im/openworm/neuronal-analysis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/openworm/neuronal-analysis](https://badges.gitter.im/openworm/neuronal-analysis.svg)](https://gitter.im/openworm/neuronal-analysis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Stories in Ready](https://badge.waffle.io/openworm/neuronal-analysis.svg?label=ready&title=Ready)](http://waffle.io/openworm/neuronal-analysis)
 
 # neuronal-analysis
 
