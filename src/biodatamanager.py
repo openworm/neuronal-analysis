@@ -42,14 +42,12 @@ class BioDataset():
 
         if not name:
             raise TypeError('Cannot create anonymous dataset')
-
         self.__cache = dataset
 
         # We should really do dependency
         self.__reader = readfunc
         self.__writer = writefunc
         self.__generator = genfunc
-
         self.filepath = filepath
         self.tags = set(tags)
         self.annotation = annotation
@@ -63,9 +61,8 @@ class BioDataset():
             manager.new(self)
             self.__manager = weakref.ref(manager)
 
-    def data(self):
+    def data(self, method=None):
         assert hasattr(self.__reader, '__call__')
-
         """ Retrieve the dataset.
         If it's already in memory, nothing happens.
         If it is not in memory, it will be loaded into memory
@@ -74,19 +71,22 @@ class BioDataset():
 
         dataset_path = self.filepath
         path_exists = os.path.exists(dataset_path)
+				        
         # If the file doesn't exist and we have
         # no generator, then quit
         if not path_exists and self.__generator==None:
+            print 'No path and no generator. Aborting'
             raise OSError('No file or path to retrieve {0}'.format(dataset_path))
-        # If file doesn't exist and we do have a generator
-        # then generate
-        elif not path_exists and self.__generator!=None:
-            cache = self.__generator()
-            self.__cache = cache
-        # If file does exist, then generate it
-        else:
-            self.__cache = self.__reader(self.filepath)
-        return  self.__cache
+        elif (method == None or method == 'generate') \
+            and self.__generator!=None:
+            print 'Generating'
+            self.__cache = self.__generator()
+            return self.__cache
+        elif path_exists and (method=='load' or method==None):
+						print 'Reading'
+						cache = self.__reader(self.filepath)
+						self.__cache = cache
+						return  self.__cache
 
     def write(self):
 
