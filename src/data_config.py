@@ -55,16 +55,16 @@ def gen_connectome_graph():
         #__connectome_network[n_a]['Type'] = 'InterNeuron'
         #__connectome_network[n_b]['Type'] = 'InterNeuron'
                                                  
-    for row in xrange(muscle.shape[0]):                              
-        n_a = muscle['Neuron'][row]                                  
-        n_b = muscle['Muscle'][row]                                  
-        num_connections = muscle['Number of Connections'][row]       
-        neurotransmitter = muscle['Neurotransmitter'][row]           
-                                                                     
-        __connectome_network.add_edge(n_a, n_b,                      
-             weight=num_connections,                                 
-             neurotransmitter=neurotransmitter)                      
-        #__connectome_network[n_b]['Type'] = 'Muscle'
+#    for row in xrange(muscle.shape[0]):                              
+#        n_a = muscle['Neuron'][row]                                  
+#        n_b = muscle['Muscle'][row]                                  
+#        num_connections = muscle['Number of Connections'][row]       
+#        neurotransmitter = muscle['Neurotransmitter'][row]           
+#                                                                     
+#        __connectome_network.add_edge(n_a, n_b,                      
+#             weight=num_connections,                                 
+#             neurotransmitter=neurotransmitter)                      
+#        #__connectome_network[n_b]['Type'] = 'Muscle'
 
     """for row in xrange(sensory.shape[0]):                             
         n_a = sensory['Neuron'][row]                                 
