@@ -6,20 +6,21 @@ import biodatamanager as dm
 
 currdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 data_location = os.path.join(currdir, 'data/wbdata/')
-print data_location
 MAT_EXTENSION = '.mat'
 
 def extract_nids_list(wormdata):
-    nids = wormdata['NeuronIds'].transpose()
+    nids = wormdata['NeuronIds'][0][0].transpose()
     total = []
     for x in nids:
         for j in x:
             neuron_array = j[0]
-            neurons = [ extract
+            neurons = [ extract 
                 for n in neuron_array 
                 for extract in n if extract !='-'*3]
-            total.append(neurons)
+            if len(neurons)==0: neurons=None
 
+            total.append(neurons)
+    
     return total
 
 def readfile(fname):
@@ -45,29 +46,26 @@ def readfile(fname):
 def load_matfile(matfile):
     """Builds a dictionary from a matfile string"""
 
-    data=matfile['wbData'][0][0]
+    data=matfile['wbData']
 
     keyed_data = {
-        data.dtype.names[i]: data[i].T
+        data.dtype.names[i]: data[data.dtype.names[i]].T
         for i in range(len(data.dtype.names))
     }
-    keyed_data['NeuronIds']  = extract_nids_list(keyed_data)
-    return keyed_data
+    final = {}
+    final['NeuronIds']  = extract_nids_list(data)
+    final['deltaFOverF'] = keyed_data['deltaFOverF'][0][0]
+    final['deltaFOverF_deriv'] = keyed_data['deltaFOverF_deriv'][0][0]
+    final['deltaFOverF_bc'] = keyed_data['deltaFOverF_bc'][0][0]
+    final['tv'] = np.array(keyed_data['tv'][0][0]).flatten()
 
-def mat_dict_to_timeseries(mat_dict):
-   """ Wraps all the timeseries in timeseries objects """
-   neurons = mat_dict['NeuronIds']
-   data = { key: series \
-   for key, series in mat_dict.iteritems() \
-   if key != 'NeuronIds' and key != 'FlNm'}
-
-   data['NeuronIds'] = pd.DataFrame(mat_dict['NeuronIds'])
-   data['FlNm'] = mat_dict['FlNm'][0]
-   return data
+    
+    return final
 
 def loadfiles(files):
    """ Puts scipy-io sourced matfiles into a cleaner, more structured form """
-   datasets = [mat_dict_to_timeseries(load_matfile(filestr))
+   datasets = [
+       load_matfile(filestr)
        for fname, filestr in files.iteritems()]
 
    return datasets
@@ -81,3 +79,9 @@ def load(path):
 
 
 filenames = os.listdir(data_location)
+
+if __name__ =='__main__':
+  mat = readfile(os.path.join(data_location, filenames[0]))
+  data = mat['wbData']
+  neurons = extract_nids_list(data)
+  print neurons

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>createMarkedFile</key>
+	<false/>
+	<key>sheetClusters</key>
+	<array>
+		<array>
+			<string>analysis.py</string>
+		</array>
+		<array>
+			<string>biodatamanager.py</string>
+		</array>
+		<array>
+			<string>clean.sh</string>
+		</array>
+		<array>
+			<string>data_config.py</string>
+		</array>
+		<array>
+			<string>dimensions_kit.py</string>
+		</array>
+		<array>
+			<string>experiment_manager.py</string>
+		</array>
+		<array>
+			<string>graphing.py</string>
+		</array>
+		<array>
+			<string>katodata.py</string>
+		</array>
+		<array>
+			<string>katotools.py</string>
+		</array>
+		<array>
+			<string>neurontimeseries.py</string>
+		</array>
+		<array>
+			<string>README.md</string>
+		</array>
+		<array>
+			<string>rnn.py</string>
+		</array>
+		<array>
+			<string>test.py</string>
+		</array>
+		<array>
+			<string>transform.py</string>
+		</array>
+	</array>
+</dict>
+</plist>

@@ -14,12 +14,11 @@ def integrated(timeseriestype):
             Invalid timeseriestype passed\n
             Must be one of\n{0}
             """.format(allowed_series))
-
     datasets  = [ \
         nts.NeuronTimeSeries(
             timeseries=wd[i][timeseriestype],
-            nnames=wd[i]['NeuronIds'][0])
+            nnames=wd[i]['NeuronIds'])
         for i in range(5) \
-        ]
-
+        ]          
+    set( datasets[0].nnames )
     return nts.NeuronTimeSeriesIntegrator(datasets)

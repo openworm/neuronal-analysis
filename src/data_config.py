@@ -71,6 +71,7 @@ def gen_connectome_graph():
         __connectome_network[n_a]['Type'] = sensory['Landmark'][row] 
     """
     return __connectome_network                                      
+
 connectome_networkx = dm.BioDataset(
     name='Connectome Networkx',
     filepath=projdir+'/data/connectome.pickle',

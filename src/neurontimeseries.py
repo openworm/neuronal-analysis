@@ -41,20 +41,20 @@ class NeuronTimeSeries:
         """Initializer"""
         self.timeseries = timeseries
 
-
         """
         NNames: A list of the names of all neurons
         whose indexes map to the indexes of datasets in
         timeseries(). Note: if a neuron's identity is not
         confirmed, the index will contain a None
         """
-        self.nnames = nnames if not nnames is None else [None
-                for i in xrange(timeseries.shape[0])]
+        self.neuronids = nnames if not nnames is None else\
+              [None for i in xrange(timeseries.shape[0])]
         self.nname_to_index = {
-                self.nnames[j]:j
-                for j in range(len(self.nnames))
-                if self.nnames[j]!=None
+              (nname[0] if type(nname)==list else nname):i
+                for i,nname in enumerate(self.neuronids)
+                if nname != None
             }
+        self.nnames = self.nname_to_index.keys()
 
 
     def dims_match(self, other):
@@ -77,10 +77,10 @@ class NeuronTimeSeries:
             nintersect = self.neuron_intersect(other)
             a = self.select_neurons(nintersect)
             b = other.select_neurons(nintersect)
-
         min_ind = min(a.timeseries.shape[1], b.timeseries.shape[1])
         # Let numpy catch any errors
-        return np.dot(a.timeseries[:,0:min_ind], b.timeseries[:,0:min_ind].T)
+        result=np.dot(a.timeseries[:,0:min_ind], b.timeseries[:,0:min_ind].T)
+        return result
 
 
 class NeuronTimeSeriesIntegrator():
@@ -104,9 +104,8 @@ class NeuronTimeSeriesIntegrator():
             for ts in self.series]
 
         self.neuronmemberships = [
-            set(
-                filter(lambda x: x!=None, series[i].nnames))
-            for i in range(5) ]
+            set(series[i].nnames)
+            for i in range(len(self.series)) ]
 
         self.global_neurons = self.global_shared()
         self.local_neurons = self.local_shared()
@@ -150,9 +149,13 @@ class NeuronTimeSeriesIntegrator():
 
             a = self.series[i].select_neurons(neuron_list)
             b = self.series[k].select_neurons(neuron_list)
-
             correl = a.cross_correlate(b)
 
             CC[(k,i)] = correl
 
         return CC
+
+    def mutual_information(self, delay):
+      raise NotImplementedError()
+
+    
