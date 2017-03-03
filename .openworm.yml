@@ -1,0 +1,18 @@
+repo: openworm/neuronal-analysis
+shortDescription: "Tools to produce, analyse and compare both simulated and recorded neuronal dataset"
+coordinator: stephen@openworm.org
+documentation: "https://github.com/openworm/neuronal-analysis/blob/master/README.md"
+gitter: "http://gitter.im/openworm/neuronal-analysis"
+keywords: 
+  - analysis
+  - neurons
+  - data
+languages: 
+  - python
+members: 
+  - aclscientist@gmail.com
+  - luke.czapla@frisch.org 
+outputs: 
+  - openworm/CElegansNeuroML
+parent: 
+  - openworm/OpenWorm
