@@ -23,7 +23,7 @@ kato = dm.BioDataset(
     writefunc=lambda flnm, data: data.to_pickle(flnm),
     annotation='Straight from the heads of five worms to your table',
     manager=manager,
-    autoload=True)
+    autoload=False)
 
 
 connectome_excel=dm.BioDataset(                                

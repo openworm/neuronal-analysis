@@ -37,6 +37,63 @@ os.environ["THEANO_FLAGS"] = "mode=FAST_RUN,device=gpu,floatX=float32"
 # https://github.com/fchollet/keras/issues/1061
 # Thanks to @jrieke for providing code and guidance
 
+
+def generate_lstm_vanilla(seq, maxlen=1, bs=10, ep=2, output_iterations=250):
+    
+    seq *= 1/np.max(seq) #scale [-1, 1] 
+
+    X = []
+    y = []
+
+    d = (len(seq) - maxlen) // bs
+    for i in range(0, (d * bs)):
+        X.append(seq[i:i+maxlen])
+        y.append(seq[i+maxlen])
+
+    dim = len((X[0][0]))
+
+    print("sequence chunks:", len(X))
+    print("chunk width:", len(X[0]))
+    print("vector dimension:", dim)
+    print("batch size:", bs)
+
+    X = np.array(X)
+    y = np.array(y)
+    
+    print("X shape:", X.shape)
+
+    # build the LSTM model
+    print('Build model...')
+    model = Sequential()
+    model.add(LSTM(512, return_sequences=True, batch_input_shape=(bs, maxlen, dim), stateful=True))
+    model.add(Dropout(0.5))
+    model.add(LSTM(512, return_sequences=False))
+    model.add(Dropout(0.5))
+    model.add(Dense(dim))
+    model.add(Activation('tanh'))
+
+    model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+    
+    # Train the model
+    model.fit(X, y, batch_size=bs, nb_epoch=ep)
+
+    # Generate timeseries
+    x = X[(d*bs - bs):(d*bs)] #choose final in-sample data of size batch-size
+
+    print("Predicting with shape:", x.shape)
+
+    output = []
+
+    for i in range(output_iterations):
+        pred = model.predict(x, verbose=0)[0]
+        output.append(pred)
+
+        #drop oldest data in x, and append predicted data for feedforward into model
+        x = np.delete(x, 0, 0)
+        x = np.append(x, np.array([[pred]]), 0)
+
+    return np.array(output)
+
 class GMMActivation(Layer):
     """
     GMM-like activation function.
@@ -85,7 +142,7 @@ def gmm_loss(y_true, y_pred):
     sequences=seq, non_sequences=[M, D, y_true, y_pred])
     return -T.log(result.sum(0))
 
-def generate(seq, maxlen=1, bs=3, ep=5, output_iterations=10, num_mixture_components=10):
+def generate_lstm_gmm(seq, maxlen=1, bs=500, ep=2, output_iterations=10, num_mixture_components=3):
     # seq is a single sample, in the format (timesteps, features) !
     # TODO: expand code to support multiple samples, fed into model together as a batch
     # Cut the timeseries data (variable name 'seq') into semi-redundant sequence chunks of maxlen
@@ -103,6 +160,7 @@ def generate(seq, maxlen=1, bs=3, ep=5, output_iterations=10, num_mixture_compon
     print("chunk width:", len(X[0]))
     print("vector dimension:", dim)
     print("number of mixture components:", num_mixture_components)
+    print("batch size:", bs)
 
     X = np.array(X)
     y = np.array(y)
